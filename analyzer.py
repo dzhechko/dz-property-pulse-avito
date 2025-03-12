@@ -181,13 +181,22 @@ def generate_visualization(data, parameter, title=None, bins=30):
     
     # Create histogram visualization
     plt.figure(figsize=(12, 6), facecolor='white')
+    
+    # Добавляем переменную для отслеживания настраиваемых бинов
+    custom_bins_used = False
+    
     # Add a small amount of random noise to improve histogram display 
     # for parameters with few unique values
     if parameter in ['rooms'] and unique_values < 10:
         jittered_data = clean_data + np.random.normal(0, 0.1, len(clean_data))
         plt.hist(jittered_data, bins=actual_bins, color='#2196F3', edgecolor='black', alpha=0.7)
+    elif parameter == 'area' and stats['max'] - stats['min'] < 10:
+        # Для площади с узким диапазоном будем использовать специальную обработку
+        # Эти бины будут определены в дальнейшем коде, не добавляем hist здесь
+        custom_bins_used = True
     else:
         plt.hist(clean_data, bins=actual_bins, color='#2196F3', edgecolor='black', alpha=0.7)
+    
     plt.grid(True, alpha=0.3, linestyle='--', color='gray')
     
     # Add statistics lines
@@ -207,7 +216,28 @@ def generate_visualization(data, parameter, title=None, bins=30):
         include_rub = False
         
         # Для площади важно правильное форматирование бинов, особенно для диапазонов
-        if stats['max'] <= 300:  # Для типичных квартир
+        # Проверяем, насколько узкий диапазон данных
+        data_range = stats['max'] - stats['min']
+        logger.info(f"Area data range: {data_range}")
+        
+        if data_range < 10:
+            # Если диапазон очень маленький, создадим индивидуальные бины для каждой точки
+            logger.info("Very narrow area range detected, using custom binning")
+            # Используем бины размером 1 м² или меньше для очень узкого диапазона
+            bin_size = max(0.5, data_range / 10)
+            custom_bins = np.arange(stats['min'] - bin_size/2, stats['max'] + bin_size, bin_size)
+            logger.info(f"Using custom bins: {custom_bins}")
+            plt.hist(clean_data, bins=custom_bins, color='#2196F3', edgecolor='black', alpha=0.7)
+            # Добавляем маркеры для каждой точки данных
+            for val in clean_data:
+                plt.axvline(val, color='green', alpha=0.3, linestyle='--')
+            # Устанавливаем деления оси X с шагом 1 м²
+            plt.xticks(np.arange(int(stats['min']-1), int(stats['max']+2), 1))
+        elif data_range < 20:
+            # Для небольшого диапазона используем более мелкий шаг
+            bin_size = 2
+            plt.xticks(np.arange(int(stats['min']), int(stats['max']) + 3, bin_size))
+        elif stats['max'] <= 300:  # Для типичных квартир
             # Используем меньшие интервалы для маленьких площадей, большие для больших
             if stats['max'] - stats['min'] > 100:
                 plt.xticks(range(int(stats['min']), int(stats['max']) + 10, 10))
@@ -237,11 +267,31 @@ def generate_visualization(data, parameter, title=None, bins=30):
     plt.close()
     
     # Prepare histogram data for Chart.js
-    # Use the same bins as in the matplotlib plot
-    hist, bin_edges = np.histogram(clean_data, bins=actual_bins)
-    
+    # For area with narrow range, use custom bins
+    if parameter == 'area' and stats['max'] - stats['min'] < 10:
+        # Если диапазон площади очень узкий, используем бины для каждого уникального значения
+        if unique_values <= 10:
+            # Используем уникальные значения как бины для узкого диапазона площади
+            unique_vals = sorted(clean_data.unique())
+            labels = [f"{val:.1f} m²" for val in unique_vals]
+            values = [len(clean_data[clean_data == val]) for val in unique_vals]
+            chart_data = {
+                'labels': labels,
+                'values': values
+            }
+            logger.info(f"Using custom area chart data: {chart_data}")
+        else:
+            # Используем специальные бины для узкого диапазона с несколькими уникальными значениями
+            bin_size = max(0.5, (stats['max'] - stats['min']) / 10)
+            custom_bins = np.arange(stats['min'] - bin_size/2, stats['max'] + bin_size, bin_size)
+            hist, bin_edges = np.histogram(clean_data, bins=custom_bins)
+            chart_data = {
+                'labels': [f"{(bin_edges[i] + bin_edges[i+1])/2:.1f} m²" for i in range(len(bin_edges)-1)],
+                'values': hist.tolist()
+            }
+            logger.info(f"Using custom binned area chart data with {len(hist)} bins")
     # For discrete data with few unique values, create more readable labels
-    if parameter in ['rooms'] and unique_values <= 10:
+    elif parameter in ['rooms'] and unique_values <= 10:
         # For room counts, use integers as labels (1, 2, 3 rooms etc.)
         labels = [f"{int(val)} {'room' if int(val)==1 else 'rooms'}" for val in sorted(clean_data.unique())]
         values = [len(clean_data[clean_data == val]) for val in sorted(clean_data.unique())]
@@ -250,6 +300,8 @@ def generate_visualization(data, parameter, title=None, bins=30):
             'values': values
         }
     else:
+        # Use the same bins as in the matplotlib plot for other cases
+        hist, bin_edges = np.histogram(clean_data, bins=actual_bins)
         # For continuous data, use the standard approach
         chart_data = {
             'labels': [format_axis_label((bin_edges[i] + bin_edges[i+1])/2, include_rub) for i in range(len(bin_edges)-1)],

@@ -77,9 +77,21 @@ def extract_number(x):
     """
     if pd.isna(x):
         return None
+    
+    # Если уже числовое значение, просто вернуть его
     if isinstance(x, (int, float)):
         return float(x)
-    matches = re.findall(r'\d+(?:[,.]\d+)?', str(x))
+    
+    # Преобразуем в строку для поиска
+    x_str = str(x)
+    
+    # Специальная обработка для площади из строк типа "60 м²"
+    area_match = re.search(r'(\d+(?:[,.]\d+)?)(?:\s*м²|\s*кв\.м|\s*m²)', x_str)
+    if area_match:
+        return float(area_match.group(1).replace(',', '.'))
+    
+    # Общий поиск числовых значений
+    matches = re.findall(r'\d+(?:[,.]\d+)?', x_str)
     return float(matches[0].replace(',', '.')) if matches else None
 
 def remove_outliers(data):
@@ -282,15 +294,28 @@ def analyze_data(data_id, analysis_params):
         listings = data_json.get('listings', [])
         df = pd.DataFrame(listings)
         
+        # Добавляем логирование для отладки
+        logger.info(f"Available columns in data: {list(df.columns)}")
+        logger.info(f"Sample data from first 3 listings: {listings[:3]}")
+        
         # Check if parameter exists in data
         if parameter not in df.columns:
             return {"success": False, "error": f"Parameter '{parameter}' not found in the data"}
         
+        # Выводим данные по параметру перед обработкой
+        logger.info(f"Raw {parameter} values before extraction: {df[parameter].head().tolist()}")
+        
         # Extract numeric data from parameter
         df[parameter] = df[parameter].apply(extract_number)
         
+        # Выводим данные после извлечения чисел
+        logger.info(f"Processed {parameter} values after extraction: {df[parameter].head().tolist()}")
+        
         # Filter out missing values
         data = df[parameter].dropna()
+        
+        # Выводим количество действительных значений
+        logger.info(f"Valid {parameter} values count: {len(data)} out of {len(df)}")
         
         if len(data) == 0:
             return {"success": False, "error": f"No valid numeric data found for parameter '{parameter}'"}

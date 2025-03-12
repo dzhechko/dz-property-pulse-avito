@@ -83,13 +83,17 @@ def scrape():
         flash(f'An error occurred: {str(e)}', 'danger')
         return redirect(url_for('index'))
 
-@app.route('/analyze', methods=['POST'])
+@app.route('/analyze', methods=['GET', 'POST'])
 def analyze():
     """Handle analysis request"""
     data_id = session.get('data_id')
     if not data_id:
         flash('No data available for analysis. Please scrape data first.', 'warning')
         return redirect(url_for('index'))
+    
+    # Для GET запросов просто перенаправляем на главную страницу с якорем для раздела анализа
+    if request.method == 'GET':
+        return redirect(url_for('index', _anchor='analysis-section'))
     
     try:
         # Get analysis parameters from form

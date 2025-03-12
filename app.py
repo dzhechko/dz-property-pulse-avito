@@ -46,6 +46,8 @@ def index():
 def scrape():
     """Handle scraping request"""
     url = request.form.get('url')
+    api_key = request.form.get('api_key')
+    
     if not url:
         flash('Please provide a valid URL', 'danger')
         return redirect(url_for('index'))
@@ -55,7 +57,7 @@ def scrape():
         session['scrape_url'] = url
         
         # Start scraping process
-        result = scrape_avito_data(url)
+        result = scrape_avito_data(url, api_key)
         
         if result['success']:
             session['data_id'] = result['data_id']

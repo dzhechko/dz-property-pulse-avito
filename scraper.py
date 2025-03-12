@@ -319,12 +319,13 @@ def extract_avito_listings_from_text(text):
             }
         }
 
-def scrape_avito_data(url):
+def scrape_avito_data(url, api_key=None):
     """
     Scrapes real estate data from Avito using either Firecrawl API or trafilatura as fallback
     
     Args:
         url (str): URL of the Avito real estate listing page
+        api_key (str, optional): Firecrawl API key provided by user
         
     Returns:
         dict: Result of the scraping operation with keys:
@@ -335,8 +336,13 @@ def scrape_avito_data(url):
     try:
         logger.info(f"Starting scraping for URL: {url}")
         
-        # Get Firecrawl API key from environment variables
-        api_key = os.environ.get("FIRECRAWL_API_KEY")
+        # If no API key provided in function parameter, try to get from environment variables
+        if not api_key:
+            api_key = os.environ.get("FIRECRAWL_API_KEY")
+            if api_key:
+                logger.info("Using API key from environment variables")
+        else:
+            logger.info("Using user-provided API key")
         
         # Define structured data container
         structured_data = None

@@ -17,7 +17,7 @@ Avito Real Estate Analyzer — веб-приложение, созданное �
 ## Архитектура системы
 
 ### High-Level архитектура
-
+https://www.mermaidchart.com/raw/e3ca045f-5efe-4cf6-97ed-0fee244d8889?theme=light&version=v0.1&format=svg
 ```mermaid
 flowchart TB
     User(["👤 Пользователь"]) <--> WebUI["🖥️ Веб-интерфейс"]
@@ -29,19 +29,19 @@ flowchart TB
     Analyzer --> Visualization["📈 Визуализация данных"]
     App <--> Database[("💾 База данных SQLite")]
     
-    style User fill:#f9f9f9,stroke:#333,stroke-width:2px
-    style WebUI fill:#d4f4fa,stroke:#333,stroke-width:2px
-    style App fill:#c9e6ff,stroke:#333,stroke-width:2px
-    style Scraper fill:#ffe6cc,stroke:#333,stroke-width:2px
-    style Analyzer fill:#d5e8d4,stroke:#333,stroke-width:2px
-    style FirecrawlAPI fill:#fff2cc,stroke:#333,stroke-width:2px
-    style TrafilaturaLib fill:#fff2cc,stroke:#333,stroke-width:2px
-    style Visualization fill:#e1d5e7,stroke:#333,stroke-width:2px
-    style Database fill:#f8cecc,stroke:#333,stroke-width:2px
+    style User fill:#2A2A2A,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style WebUI fill:#1A3A4A,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style App fill:#1A3555,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style Scraper fill:#3D2E15,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style Analyzer fill:#1E3726,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style FirecrawlAPI fill:#3B3617,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style TrafilaturaLib fill:#3B3617,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style Visualization fill:#2D1F3A,color:#FFFFFF,stroke:#606060,stroke-width:2px
+    style Database fill:#3D1E1D,color:#FFFFFF,stroke:#606060,stroke-width:2px
 ```
 
 ### Low-Level архитектура
-
+https://www.mermaidchart.com/raw/3aadefdc-eb89-46f9-8020-80929f073137?theme=light&version=v0.1&format=svg
 ```mermaid
 flowchart TB
     subgraph "Пользовательский интерфейс"
@@ -101,29 +101,30 @@ flowchart TB
     ModelsModule --> ScrapedDataTable
     ModelsModule --> AnalysisResultTable
     
-    style IndexPage fill:#d4f4fa,stroke:#333,stroke-width:1px
-    style ResultsPage fill:#d4f4fa,stroke:#333,stroke-width:1px
-    style APIData fill:#d4f4fa,stroke:#333,stroke-width:1px
-    style APIAnalysis fill:#d4f4fa,stroke:#333,stroke-width:1px
+    style IndexPage fill:#1e1e1e,stroke:#aaa,stroke-width:1px,color:#ffffff
+    style ResultsPage fill:#1e1e1e,stroke:#aaa,stroke-width:1px,color:#ffffff
+    style APIData fill:#1e1e1e,stroke:#aaa,stroke-width:1px,color:#ffffff
+    style APIAnalysis fill:#1e1e1e,stroke:#aaa,stroke-width:1px,color:#ffffff
     
-    style AppModule fill:#c9e6ff,stroke:#333,stroke-width:1px
-    style MainModule fill:#c9e6ff,stroke:#333,stroke-width:1px
-    style ModelsModule fill:#c9e6ff,stroke:#333,stroke-width:1px
+    style AppModule fill:#252526,stroke:#777,stroke-width:1px,color:#ffffff
+    style MainModule fill:#252526,stroke:#777,stroke-width:1px,color:#ffffff
+    style ModelsModule fill:#252526,stroke:#777,stroke-width:1px,color:#ffffff
     
-    style ScraperModule fill:#ffe6cc,stroke:#333,stroke-width:1px
-    style FirecrawlClient fill:#ffe6cc,stroke:#333,stroke-width:1px
-    style TrafilaturaExtractor fill:#ffe6cc,stroke:#333,stroke-width:1px
-    style AvitoParser fill:#ffe6cc,stroke:#333,stroke-width:1px
+    style ScraperModule fill:#3a3a3a,stroke:#777,stroke-width:1px,color:#ffffff
+    style FirecrawlClient fill:#3a3a3a,stroke:#777,stroke-width:1px,color:#ffffff
+    style TrafilaturaExtractor fill:#3a3a3a,stroke:#777,stroke-width:1px,color:#ffffff
+    style AvitoParser fill:#3a3a3a,stroke:#777,stroke-width:1px,color:#ffffff
     
-    style AnalyzerModule fill:#d5e8d4,stroke:#333,stroke-width:1px
-    style VisualizationEngine fill:#d5e8d4,stroke:#333,stroke-width:1px
-    style DataProcessor fill:#d5e8d4,stroke:#333,stroke-width:1px
-    style OutlierRemoval fill:#d5e8d4,stroke:#333,stroke-width:1px
+    style AnalyzerModule fill:#2e3b2e,stroke:#777,stroke-width:1px,color:#ffffff
+    style VisualizationEngine fill:#2e3b2e,stroke:#777,stroke-width:1px,color:#ffffff
+    style DataProcessor fill:#2e3b2e,stroke:#777,stroke-width:1px,color:#ffffff
+    style OutlierRemoval fill:#2e3b2e,stroke:#777,stroke-width:1px,color:#ffffff
     
-    style ScrapedDataTable fill:#f8cecc,stroke:#333,stroke-width:1px
-    style AnalysisResultTable fill:#f8cecc,stroke:#333,stroke-width:1px
+    style ScrapedDataTable fill:#4b2b2b,stroke:#777,stroke-width:1px,color:#ffffff
+    style AnalysisResultTable fill:#4b2b2b,stroke:#777,stroke-width:1px,color:#ffffff
     
-    style ExternalFirecrawl fill:#fff2cc,stroke:#333,stroke-width:1px
+    style ExternalFirecrawl fill:#5a482b,stroke:#777,stroke-width:1px,color:#ffffff
+
 ```
 
 ## Структура файлов проекта

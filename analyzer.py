@@ -205,6 +205,14 @@ def generate_visualization(data, parameter, title=None, bins=30):
     elif parameter == 'area':
         plt.xlabel("Area (m²)", labelpad=10)
         include_rub = False
+        
+        # Для площади важно правильное форматирование бинов, особенно для диапазонов
+        if stats['max'] <= 300:  # Для типичных квартир
+            # Используем меньшие интервалы для маленьких площадей, большие для больших
+            if stats['max'] - stats['min'] > 100:
+                plt.xticks(range(int(stats['min']), int(stats['max']) + 10, 10))
+            else:
+                plt.xticks(range(int(stats['min']), int(stats['max']) + 5, 5))
     elif parameter == 'rooms':
         plt.xlabel("Number of Rooms", labelpad=10)
         include_rub = False

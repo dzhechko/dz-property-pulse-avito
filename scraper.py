@@ -122,6 +122,10 @@ def extract_avito_listings_from_text(text):
         return None
     
     import re
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    logger.info(f"Extracting listings from text of length: {len(text)}")
     
     # Advanced pattern extraction for Avito property listings
     listings = []
@@ -160,9 +164,23 @@ def extract_avito_listings_from_text(text):
                     rooms = int(rooms_match.group(1)) if rooms_match else None
                     
                     # Look for area info
-                    area_pattern = r'(\d+(?:[.,]\d+)?)[\s]*м²'
+                    area_pattern = r'(\d+(?:[.,]\d+)?)[\s]*(?:м²|кв\.м|m²)'
                     area_match = re.search(area_pattern, listing_text)
-                    area = float(area_match.group(1).replace(',', '.')) if area_match else None
+                    
+                    # Дополнительное логирование для отладки
+                    if area_match:
+                        logger.info(f"Found area match: {area_match.group(0)}, extracting value: {area_match.group(1)}")
+                        area = float(area_match.group(1).replace(',', '.'))
+                    else:
+                        # Попробуем альтернативный шаблон для площади
+                        alt_area_pattern = r'площадь[^\d]*(\d+(?:[.,]\d+)?)'
+                        alt_area_match = re.search(alt_area_pattern, listing_text, re.IGNORECASE)
+                        if alt_area_match:
+                            logger.info(f"Found alternative area match: {alt_area_match.group(0)}, extracting value: {alt_area_match.group(1)}")
+                            area = float(alt_area_match.group(1).replace(',', '.'))
+                        else:
+                            logger.warning(f"No area information found in listing text snippet: '{listing_text[:100]}...'")
+                            area = None
                     
                     # Look for floor info
                     floor_pattern = r'(\d+)/(\d+)[\s]*эт'
@@ -247,8 +265,23 @@ def extract_avito_listings_from_text(text):
                         price = int(price_match.group(1).replace(' ', '')) if price_match else 0
                         
                         # Other extraction logic similar to above
-                        area_match = re.search(r'(\d+(?:[.,]\d+)?)[\s]*м²', listing_text)
-                        area = float(area_match.group(1).replace(',', '.')) if area_match else None
+                        area_pattern = r'(\d+(?:[.,]\d+)?)[\s]*(?:м²|кв\.м|m²)'
+                        area_match = re.search(area_pattern, listing_text)
+                        
+                        # Дополнительное логирование для отладки
+                        if area_match:
+                            logger.info(f"Alt method: Found area match: {area_match.group(0)}, extracting value: {area_match.group(1)}")
+                            area = float(area_match.group(1).replace(',', '.'))
+                        else:
+                            # Попробуем альтернативный шаблон для площади
+                            alt_area_pattern = r'площадь[^\d]*(\d+(?:[.,]\d+)?)'
+                            alt_area_match = re.search(alt_area_pattern, listing_text, re.IGNORECASE)
+                            if alt_area_match:
+                                logger.info(f"Alt method: Found alternative area match: {alt_area_match.group(0)}, extracting value: {alt_area_match.group(1)}")
+                                area = float(alt_area_match.group(1).replace(',', '.'))
+                            else:
+                                logger.warning(f"Alt method: No area information found in listing text snippet: '{listing_text[:100]}...'")
+                                area = None
                         
                         floor_match = re.search(r'(\d+)/(\d+)[\s]*эт', listing_text)
                         floor = f"{floor_match.group(1)}/{floor_match.group(2)}" if floor_match else None

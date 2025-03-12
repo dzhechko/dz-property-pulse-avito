@@ -65,6 +65,10 @@ def scrape():
                 scraped_data = ScrapedData.query.get(result['data_id'])
                 data_json = json.loads(scraped_data.data)
                 listing_count = len(data_json.get('listings', []))
+                
+                # Save listing count in session for display on multiple pages
+                session['listing_count'] = listing_count
+                
                 flash(f'Scraping completed successfully! Found {listing_count} listings.', 'success')
             except Exception as e:
                 app.logger.error(f"Error getting listing count: {str(e)}")

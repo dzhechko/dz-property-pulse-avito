@@ -79,6 +79,18 @@
                     </div>
                 </div>
                 
+                {% if session.get('data_id') %}
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Last scraping result:</strong>
+                    {% if session.get('listing_count') %}
+                        Found <span class="badge bg-primary">{{ session.get('listing_count') }}</span> listings for analysis.
+                    {% else %}
+                        Data scraped successfully.
+                    {% endif %}
+                </div>
+                {% endif %}
+                
                 <div class="mt-3">
                     <h5>Example URLs:</h5>
                     <ul class="list-group">

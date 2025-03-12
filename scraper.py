@@ -6,18 +6,80 @@ import trafilatura
 from app import db
 from models import ScrapedData
 
-# Import FirecrawlApp from Mendable
-try:
-    from mendable.firecrawl_js import FirecrawlApp
-except ImportError:
-    # Mock the class for development if not available
-    class FirecrawlApp:
-        def __init__(self, apiKey):
-            self.apiKey = apiKey
+import requests
+import aiohttp
+import asyncio
+
+# Firecrawl API client implementation (direct HTTP calls)
+class FirecrawlApp:
+    def __init__(self, apiKey):
+        self.apiKey = apiKey
+        self.base_url = "https://api.firecrawl.dev/api/v1/scrape"
+        self.headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {apiKey}"
+        }
+    
+    async def scrapeUrl(self, url, params):
+        """
+        Scrape a URL using the Firecrawl API
         
-        async def scrapeUrl(self, url, params):
-            # This is a mock method - in production, this should use the actual API
-            raise NotImplementedError("FirecrawlApp is not available")
+        Args:
+            url (str): URL to scrape
+            params (dict): Additional parameters for scraping
+            
+        Returns:
+            dict: Scraped data or None if error
+        """
+        try:
+            payload = {
+                "url": url,
+                **params
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.base_url, 
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        logger.info("Firecrawl API request successful")
+                        return result
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Firecrawl API request failed with status {response.status}: {error_text}")
+                        return None
+        except Exception as e:
+            logger.error(f"Error making Firecrawl API request: {str(e)}")
+            return None
+            
+    def scrapeUrlSync(self, url, params):
+        """
+        Synchronous version of scrapeUrl for simpler use cases
+        """
+        try:
+            payload = {
+                "url": url,
+                **params
+            }
+            
+            response = requests.post(
+                self.base_url,
+                headers=self.headers,
+                json=payload
+            )
+            
+            if response.status_code == 200:
+                logger.info("Firecrawl API request successful")
+                return response.json()
+            else:
+                logger.error(f"Firecrawl API request failed with status {response.status_code}: {response.text}")
+                return None
+        except Exception as e:
+            logger.error(f"Error making Firecrawl API request: {str(e)}")
+            return None
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -327,13 +389,50 @@ def scrape_avito_data(url):
                     "timeout": 50000,  # 50 seconds timeout
                 }
                 
-                # This would be where we would make the actual API call
-                # In a production environment, uncomment the following line:
-                # scraped_data = await firecrawl.scrapeUrl(url, params)
-                # structured_data = scraped_data
+                # Try synchronous method first for simplicity
+                try:
+                    logger.info("Using Firecrawl API with synchronous method")
+                    scraped_data = firecrawl.scrapeUrlSync(url, params)
+                    
+                    if scraped_data and isinstance(scraped_data, dict) and 'listings' in scraped_data:
+                        structured_data = scraped_data
+                        logger.info(f"Successfully retrieved {len(scraped_data.get('listings', []))} listings using Firecrawl API")
+                    else:
+                        logger.warning("Firecrawl API returned invalid data format")
+                        
+                        # Try async method as fallback
+                        try:
+                            logger.info("Trying asynchronous method as fallback")
+                            import asyncio
+                            
+                            # Define an async function to run the API call
+                            async def run_firecrawl():
+                                try:
+                                    result = await firecrawl.scrapeUrl(url, params)
+                                    return result
+                                except Exception as e:
+                                    logger.error(f"Error in Firecrawl API call: {str(e)}")
+                                    return None
+                            
+                            # Run the async function
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            scraped_data = loop.run_until_complete(run_firecrawl())
+                            loop.close()
+                            
+                            if scraped_data and isinstance(scraped_data, dict) and 'listings' in scraped_data:
+                                structured_data = scraped_data
+                                logger.info(f"Successfully retrieved {len(scraped_data.get('listings', []))} listings using Firecrawl API async")
+                            else:
+                                logger.warning("Firecrawl API async returned invalid data format, falling back to trafilatura")
+                        
+                        except Exception as e:
+                            logger.error(f"Failed to use Firecrawl API async: {str(e)}")
+                            logger.warning("Falling back to trafilatura method due to Firecrawl async error")
                 
-                # For now, we'll fall back to trafilatura since we can't easily use asyncio
-                logger.warning("Firecrawl API key found but using fallback method for demonstration.")
+                except Exception as e:
+                    logger.error(f"Failed to use Firecrawl API sync: {str(e)}")
+                    logger.warning("Falling back to trafilatura method due to Firecrawl sync error")
             except Exception as e:
                 logger.error(f"Error using Firecrawl API: {str(e)}")
                 # We'll fall back to trafilatura

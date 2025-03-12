@@ -144,9 +144,38 @@ def generate_visualization(data, parameter, title=None, bins=30):
         'std': float(clean_data.std())
     }
     
+    # Check data variance to determine appropriate bin strategy
+    data_range = stats['max'] - stats['min']
+    unique_values = clean_data.nunique()
+    
+    # If we have few unique values, use those values as bins
+    if unique_values <= 10:
+        actual_bins = sorted(clean_data.unique())
+        logger.info(f"Using {len(actual_bins)} unique values as bins")
+    elif unique_values < bins:
+        # If we have fewer unique values than requested bins, reduce bin count
+        actual_bins = min(unique_values, bins)
+        logger.info(f"Adjusted bins from {bins} to {actual_bins} based on unique values")
+    else:
+        # Calculate bin width to avoid having empty bins
+        bin_width = data_range / bins
+        if bin_width < 1 and parameter in ['rooms', 'floor']:
+            # For discrete data like rooms, adjust bins
+            actual_bins = unique_values
+            logger.info(f"Using {unique_values} bins for discrete parameter {parameter}")
+        else:
+            actual_bins = bins
+            logger.info(f"Using {bins} bins for parameter {parameter}")
+    
     # Create histogram visualization
     plt.figure(figsize=(12, 6), facecolor='white')
-    plt.hist(clean_data, bins=bins, color='#2196F3', edgecolor='black', alpha=0.7)
+    # Add a small amount of random noise to improve histogram display 
+    # for parameters with few unique values
+    if parameter in ['rooms'] and unique_values < 10:
+        jittered_data = clean_data + np.random.normal(0, 0.1, len(clean_data))
+        plt.hist(jittered_data, bins=actual_bins, color='#2196F3', edgecolor='black', alpha=0.7)
+    else:
+        plt.hist(clean_data, bins=actual_bins, color='#2196F3', edgecolor='black', alpha=0.7)
     plt.grid(True, alpha=0.3, linestyle='--', color='gray')
     
     # Add statistics lines
@@ -188,11 +217,24 @@ def generate_visualization(data, parameter, title=None, bins=30):
     plt.close()
     
     # Prepare histogram data for Chart.js
-    hist, bin_edges = np.histogram(clean_data, bins=bins)
-    chart_data = {
-        'labels': [format_axis_label((bin_edges[i] + bin_edges[i+1])/2, include_rub) for i in range(len(bin_edges)-1)],
-        'values': hist.tolist()
-    }
+    # Use the same bins as in the matplotlib plot
+    hist, bin_edges = np.histogram(clean_data, bins=actual_bins)
+    
+    # For discrete data with few unique values, create more readable labels
+    if parameter in ['rooms'] and unique_values <= 10:
+        # For room counts, use integers as labels (1, 2, 3 rooms etc.)
+        labels = [f"{int(val)} {'room' if int(val)==1 else 'rooms'}" for val in sorted(clean_data.unique())]
+        values = [len(clean_data[clean_data == val]) for val in sorted(clean_data.unique())]
+        chart_data = {
+            'labels': labels,
+            'values': values
+        }
+    else:
+        # For continuous data, use the standard approach
+        chart_data = {
+            'labels': [format_axis_label((bin_edges[i] + bin_edges[i+1])/2, include_rub) for i in range(len(bin_edges)-1)],
+            'values': hist.tolist()
+        }
     
     return {
         'image_base64': image_base64,

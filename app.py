@@ -59,7 +59,17 @@ def scrape():
         
         if result['success']:
             session['data_id'] = result['data_id']
-            flash('Scraping completed successfully!', 'success')
+            
+            # Get listing count to display to user
+            try:
+                scraped_data = ScrapedData.query.get(result['data_id'])
+                data_json = json.loads(scraped_data.data)
+                listing_count = len(data_json.get('listings', []))
+                flash(f'Scraping completed successfully! Found {listing_count} listings.', 'success')
+            except Exception as e:
+                app.logger.error(f"Error getting listing count: {str(e)}")
+                flash('Scraping completed successfully!', 'success')
+            
             return redirect(url_for('index', _anchor='analysis-section'))
         else:
             flash(f'Error during scraping: {result["error"]}', 'danger')

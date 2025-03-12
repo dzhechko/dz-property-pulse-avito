@@ -117,6 +117,9 @@
                 {% if session.get('data_id') %}
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>Data has been successfully scraped and is ready for analysis!
+                    {% if session.get('listing_count') %}
+                    <span class="fw-bold ms-2">Found {{ session.get('listing_count') }} listings for analysis.</span>
+                    {% endif %}
                 </div>
                 
                 <form id="analysis-form" action="{{ url_for('analyze') }}" method="POST">

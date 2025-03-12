@@ -95,4 +95,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
+    
+    // Handle password visibility toggle
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+    if (togglePasswordButtons.length > 0) {
+        togglePasswordButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const inputField = document.getElementById(targetId);
+                
+                if (inputField) {
+                    // Toggle password visibility
+                    if (inputField.type === 'password') {
+                        inputField.type = 'text';
+                        this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    } else {
+                        inputField.type = 'password';
+                        this.innerHTML = '<i class="fas fa-eye"></i>';
+                    }
+                }
+            });
+        });
+    }
 });

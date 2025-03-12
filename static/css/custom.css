@@ -1,0 +1,99 @@
+/* Custom styles to enhance the Bootstrap theme */
+
+/* General styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Card enhancements */
+.card {
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.card-header {
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+}
+
+/* Custom form elements */
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* Image styles */
+img.img-fluid {
+    max-height: 600px;
+    object-fit: contain;
+}
+
+/* Chart container */
+canvas {
+    min-height: 300px;
+}
+
+/* Loading animations */
+.progress-bar-animated {
+    animation-duration: 1.5s;
+}
+
+/* Navigation improvements */
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Table enhancements */
+.table {
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+}
+
+th {
+    font-weight: 600;
+}
+
+/* Add some extra spacing for mobile */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+/* Enhance focus indicators for accessibility */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-secondary);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-primary);
+}

@@ -1,0 +1,225 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary bg-gradient text-white">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Avito Real Estate Data Analyzer
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    This tool allows you to scrape and analyze real estate data from Avito. You can visualize property prices, 
+                    areas, and other metrics to gain insights into the real estate market.
+                </p>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fas fa-list me-2"></i>Features:</h4>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Scrape real estate listings from Avito</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Analyze property prices, areas, and other metrics</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Generate visualizations with customizable parameters</li>
+                            <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i>Export analysis results</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fas fa-wrench me-2"></i>How It Works:</h4>
+                        <ol class="list-group list-group-flush">
+                            <li class="list-group-item"><span class="badge bg-primary me-2">1</span>Enter an Avito real estate URL</li>
+                            <li class="list-group-item"><span class="badge bg-primary me-2">2</span>Wait for data to be scraped</li>
+                            <li class="list-group-item"><span class="badge bg-primary me-2">3</span>Select parameters for analysis</li>
+                            <li class="list-group-item"><span class="badge bg-primary me-2">4</span>View and export results</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scraping Section -->
+<div class="row" id="scraping-section">
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-secondary bg-gradient text-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-spider me-2"></i>Step 1: Scrape Data
+                </h4>
+            </div>
+            <div class="card-body">
+                <form id="scraping-form" action="{{ url_for('scrape') }}" method="POST">
+                    <div class="mb-3">
+                        <label for="url" class="form-label">Avito Real Estate URL</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-link"></i></span>
+                            <input type="url" class="form-control" id="url" name="url" 
+                                   placeholder="https://www.avito.ru/moskva/kvartiry/prodam" 
+                                   required>
+                            <button class="btn btn-primary" type="submit" id="scrape-button">
+                                <i class="fas fa-spider me-2"></i>Scrape Data
+                            </button>
+                        </div>
+                        <div class="form-text">Enter the URL of an Avito real estate listings page</div>
+                    </div>
+                </form>
+                
+                <div id="scraping-status" class="d-none">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border text-primary me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>Scraping data, please wait...</span>
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <h5>Example URLs:</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <a href="#" class="example-url" data-url="https://www.avito.ru/moskva/kvartiry/prodam">
+                                Moscow Apartments for Sale
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#" class="example-url" data-url="https://www.avito.ru/sankt-peterburg/kvartiry/prodam">
+                                St. Petersburg Apartments for Sale
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="#" class="example-url" data-url="https://www.avito.ru/moskva/kvartiry/sdam/na_dlitelnyy_srok">
+                                Moscow Apartments for Rent
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Section -->
+<div class="row" id="analysis-section">
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success bg-gradient text-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-chart-histogram me-2"></i>Step 2: Analyze Data
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if session.get('data_id') %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>Data has been successfully scraped and is ready for analysis!
+                </div>
+                
+                <form id="analysis-form" action="{{ url_for('analyze') }}" method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="parameter" class="form-label">Select Parameter to Analyze</label>
+                                <select class="form-select" id="parameter" name="parameter" required>
+                                    {% for param in analysis_params %}
+                                    <option value="{{ param.id }}" data-bins="{{ param.default_bins }}">{{ param.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text parameter-description">
+                                    {% if analysis_params|length > 0 %}
+                                    {{ analysis_params[0].description }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Custom Chart Title (optional)</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       placeholder="e.g., Moscow Apartment Price Distribution">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="bins" class="form-label">Number of Bins</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bins" name="bins" 
+                                           value="30" min="5" max="100">
+                                    <button class="btn btn-outline-secondary" type="button" id="reset-bins">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                                <div class="form-text">Number of intervals in the histogram (5-100)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="mb-3 w-100">
+                                <button type="submit" class="btn btn-success w-100" id="analyze-button">
+                                    <i class="fas fa-chart-line me-2"></i>Generate Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="analysis-status" class="d-none mt-3">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border text-success me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span>Analyzing data, please wait...</span>
+                    </div>
+                    <div class="progress mt-2">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Please scrape data first by entering an Avito URL above.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parameter Information Cards -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info bg-gradient text-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Available Analysis Parameters
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for param in analysis_params %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">{{ param.name }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ param.description }}</p>
+                                <p class="mb-0"><small class="text-muted">Default bins: {{ param.default_bins }}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
